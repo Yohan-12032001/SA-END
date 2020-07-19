@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BackEnd_Core.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -60,7 +61,7 @@ namespace BackEnd_Core.Controllers
 
             var horarioConsulta = TimeSpan.Parse(agend.Hora);
 
-            var cpfExist = _context.Agendamentos.Find(agend.Cpf);
+            var cpfExist = _context.Agendamentos.Where(b => b.Cpf == agend.Cpf).FirstOrDefault();
 
             if (cpfExist != null)
             {
