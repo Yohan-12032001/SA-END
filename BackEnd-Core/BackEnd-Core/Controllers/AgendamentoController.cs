@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using BackEnd_Core.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -23,11 +27,11 @@ namespace BackEnd_Core.Controllers
         [HttpGet]
         public IEnumerable<dynamic> Get()
         {
-            
-            var datas = from agend in _context.Agendamentos
-            select new { agend.Id,agend.Cpf, agend.Hora,agend.Telefone, agend.Data.Day,agend.Data.Month,agend.Data.Year, agend.Nome };
 
-            
+            var datas = from agend in _context.Agendamentos
+                        select new { agend.Id, agend.Cpf, agend.Hora, agend.Telefone, agend.Data.Day, agend.Data.Month, agend.Data.Year, agend.Nome };
+
+
             Console.WriteLine(datas);
             return datas;
         }
@@ -37,7 +41,7 @@ namespace BackEnd_Core.Controllers
         public dynamic Get(string cpf)
         {
             var datas = from agend in _context.Agendamentos
-            select new { agend.Id, agend.Cpf, agend.Hora, agend.Telefone, agend.Data.Day, agend.Data.Month, agend.Data.Year, agend.Nome };
+                        select new { agend.Id, agend.Cpf, agend.Hora, agend.Telefone, agend.Data.Day, agend.Data.Month, agend.Data.Year, agend.Nome };
 
 
             Console.WriteLine(datas);
@@ -50,23 +54,32 @@ namespace BackEnd_Core.Controllers
         {
             var agendamentos = _context.Agendamentos.ToList();
             bool ExisteAgendamentoDia = agendamentos.Any(x => x.Data == agend.Data);
+            bool ExisteAgendamentoHora = agendamentos.Any(x => x.Hora == agend.Hora);
             var horaMin = new TimeSpan(10, 0, 0);
             var horaMax = new TimeSpan(18, 0, 0);
 
             var horarioConsulta = TimeSpan.Parse(agend.Hora);
-            
 
+            var cpfExist = _context.Agendamentos.Find(agend.Cpf);
+
+            if (cpfExist != null)
+            {
+                if (ExisteAgendamentoDia == true)
+                {
+                    return "already exist";
+                }
+            }
 
             if (horarioConsulta > horaMax || horarioConsulta < horaMin)
             {
-                
+
                 return "Horario Informado Invalido";
             }
-            //_context.Agendamento2.Sql.Contains(agend.Cpf) || ExisteAgendamentoDia
-            if (ExisteAgendamentoDia)
+
+            if (ExisteAgendamentoHora)
             {
 
-                return "Você Já tem um horario marcado!";
+                return "Já existe uma hora marcada neste horario!";
             }
 
             _context.Agendamentos.Add(agend);
@@ -82,27 +95,34 @@ namespace BackEnd_Core.Controllers
 
             var agendamentos = _context.Agendamentos.ToList();
             bool ExisteAgendamentoDia = agendamentos.Any(x => x.Data == agend.Data);
+            bool ExisteAgendamentoHora = agendamentos.Any(x => x.Hora == agend.Hora);
             var horaMin = new TimeSpan(10, 0, 0);
             var horaMax = new TimeSpan(18, 0, 0);
 
             var horarioConsulta = TimeSpan.Parse(agend.Hora);
 
+            var cpfExist = _context.Agendamentos.Find(agend.Cpf);
+
+            if (cpfExist != null)
+            {
+                if (ExisteAgendamentoDia == true)
+                {
+                    return "already exist";
+                }
+            }
+
             if (horarioConsulta > horaMax || horarioConsulta < horaMin)
             {
-                return "Horario invalido";
+
+                return "Horario Informado Invalido";
             }
 
-            if (ExisteAgendamentoDia)
-            {
-                return "Já existe uma consulta neste horario";
-            }
-
-            //_context.Agendamento2.Sql.Contains(agend.Cpf) || ExisteAgendamentoDia
-            if (ExisteAgendamentoDia)
+            if (ExisteAgendamentoHora)
             {
 
-                return "Você Já tem um horario marcado!";
+                return "Já existe uma hora marcada neste horario!";
             }
+
 
             if (agend.Data == null || agend.Cpf == "" || agend.Hora == null || agend.Telefone == "" || agend.Nome == "")
             {
